@@ -1,14 +1,26 @@
-package payment
+package global
+
+import (
+	"crypto/rsa"
+	"wechat/V3/payment"
+)
 
 type Payment interface {
+	// LoadPrivateKey 加载私钥
+	LoadPrivateKey(path string) error
+	ParseRSAPrivateKey(content string) (*rsa.PrivateKey, error)
+	// SetConfig 设置配置信息
+	SetConfig(conf *Config) Payment
+	// SetBody 设置订单信息
+	SetBody(order payment.Transaction) Payment
 	// InitiateAnOrder 发起下单
-	InitiateAnOrder(body *Body) (*Payer, error)
+	InitiateAnOrder()
 	// QueryOrderByWechatPaymentOrder 微信支付订单号查询订单
-	QueryOrderByWechatPaymentOrder(transactionId string)
+	QueryOrderByWechatPaymentOrder()
 	// QueryOrderByMerchantOrder 商户订单号查询订单
-	QueryOrderByMerchantOrder(outTradeNo string)
+	QueryOrderByMerchantOrder()
 	// CloseOrder 关闭订单
-	CloseOrder(outTradeNo string)
+	CloseOrder()
 	// Notification 支付成功回调通知
 	Notification()
 	// RefundOrder 退款申请

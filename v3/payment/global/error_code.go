@@ -1,4 +1,4 @@
-package payment
+package global
 
 type ErrorBase struct {
 	Code     int    `json:"code"`

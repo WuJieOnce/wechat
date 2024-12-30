@@ -1,4 +1,6 @@
-package payment
+package global
+
+import "crypto/rsa"
 
 type Config struct {
 	/**
@@ -24,4 +26,20 @@ type Config struct {
 	 * 公网域名必须为https，如果是走专线接入，使用专线NAT IP或者私有回调域名可使用http。
 	 */
 	NotifyURL string
+	/**
+	 * API 密钥
+	 */
+	APIKey string
+	/**
+	 * APIv3 密钥
+	 */
+	APIv3Key string
+	/**
+	 * 商户证书序列号
+	 */
+	SerialNo string
+	/**
+	 * 商户API证书
+	 */
+	PrivateKey *rsa.PrivateKey
 }

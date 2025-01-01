@@ -59,7 +59,7 @@ func (c *Client) PlaceOrder() (*CallsUpPayment, error) {
 		return nil, resp.Err
 	}
 
-	prepaid := global.Prepaid{}
+	prepaid := Prepaid{}
 	if err = json.Unmarshal(resp.Body, &prepaid); err != nil {
 		return nil, err
 	}
@@ -81,10 +81,31 @@ func (c *Client) PlaceOrder() (*CallsUpPayment, error) {
 	return &response, nil
 }
 
-// QueryOrderByWechatPaymentOrder 微信支付订单号查询订单
-func (c *Client) QueryOrderByWechatPaymentOrder() {
-	//TODO implement me
-	panic("implement me")
+// QueryByTransactionId 微信支付订单号查询订单
+func (c *Client) QueryByTransactionId(transactionId string) (*CallsUpPayment, error) {
+	url := fmt.Sprintf("/v3/pay/transactions/id/%s?mchid=%s", transactionId, c.Config.MchId)
+	// 获取当前时间戳（单位：秒）
+	timestamp := fmt.Sprintf("%d", time.Now().Unix())
+	// 生成随机字符串
+	nonceStr := utils.GenerateNonceStr(32)
+	message := fmt.Sprintf("%s\n%s\n%s\n%s\n\n", "GET", url, timestamp, nonceStr)
+	sign, err := utils.SignWithPrivateKey(message, c.Config.PrivateKey)
+	if err != nil {
+		return nil, err
+	}
+	headers := map[string]string{
+		"Accept": "application/json",
+		"Authorization":fmt.Sprintf(`WECHATPAY2-SHA256-RSA2048 mchid="%s",nonce_str="%s",signature="%s",timestamp="%s",serial_no="%s"`, c.Config.MchId, nonceStr, sign, timestamp, c.Config.SerialNo)
+	}
+	resp, err := utils.Get(fmt.Sprintf("%s%s", c.Url, url), headers)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, resp.Err
+	}
+
+	json.Unmarshal(resp.Body, &c.Body)
 }
 
 // QueryOrderByMerchantOrder 商户订单号查询订单

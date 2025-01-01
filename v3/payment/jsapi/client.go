@@ -82,7 +82,7 @@ func (c *Client) PlaceOrder() (*CallsUpPayment, error) {
 }
 
 // QueryByTransactionId 微信支付订单号查询订单
-func (c *Client) QueryByTransactionId(transactionId string) (*CallsUpPayment, error) {
+func (c *Client) QueryByTransactionId(transactionId string) (*QueryOrderResp, error) {
 	url := fmt.Sprintf("/v3/pay/transactions/id/%s?mchid=%s", transactionId, c.Config.MchId)
 	// 获取当前时间戳（单位：秒）
 	timestamp := fmt.Sprintf("%d", time.Now().Unix())
@@ -94,8 +94,8 @@ func (c *Client) QueryByTransactionId(transactionId string) (*CallsUpPayment, er
 		return nil, err
 	}
 	headers := map[string]string{
-		"Accept": "application/json",
-		"Authorization":fmt.Sprintf(`WECHATPAY2-SHA256-RSA2048 mchid="%s",nonce_str="%s",signature="%s",timestamp="%s",serial_no="%s"`, c.Config.MchId, nonceStr, sign, timestamp, c.Config.SerialNo)
+		"Accept":        "application/json",
+		"Authorization": fmt.Sprintf(`WECHATPAY2-SHA256-RSA2048 mchid="%s",nonce_str="%s",signature="%s",timestamp="%s",serial_no="%s"`, c.Config.MchId, nonceStr, sign, timestamp, c.Config.SerialNo),
 	}
 	resp, err := utils.Get(fmt.Sprintf("%s%s", c.Url, url), headers)
 	if err != nil {
@@ -104,8 +104,12 @@ func (c *Client) QueryByTransactionId(transactionId string) (*CallsUpPayment, er
 	if resp.StatusCode != 200 {
 		return nil, resp.Err
 	}
-
-	json.Unmarshal(resp.Body, &c.Body)
+	response := QueryOrderResp{}
+	err = json.Unmarshal(resp.Body, &response)
+	if err != nil {
+		return nil, err
+	}
+	return &response, nil
 }
 
 // QueryOrderByMerchantOrder 商户订单号查询订单
